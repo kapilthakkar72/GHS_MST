@@ -20,7 +20,7 @@ public class MstRunner
 		// Making constructor private, don't want anyone to make the object
 	}
 
-	public static void findMst(String dataPathInput,String dataPathOutput) throws IOException
+	public static void findMst(String dataPathInput,String dataPathOutput) throws IOException, InterruptedException
 	{
 		FileInputStream fstream = null;
 		DataInputStream in = null;
@@ -47,11 +47,12 @@ public class MstRunner
 			}
 
 			n = new Node[noOfNodes + 1];
-			adjacentNodeInfo = new int[noOfNodes + 1];
+			
 
 			// Make Objects and initialize their weight array
 			for (i = 1; i <= noOfNodes; i++)
 			{
+				adjacentNodeInfo = new int[noOfNodes + 1];
 				if ((strLine = br.readLine()) != null)
 				{
 					String read[] = strLine.split(" ");
@@ -84,6 +85,11 @@ public class MstRunner
 		    // creates a FileWriter Object
 		    writer = new FileWriter(file); 
 		    // Writes the content to the file
+		    
+		    for(i=1;i<=noOfNodes;i++)
+		    	n[i].join();
+		    
+		    System.out.println("All nodes finished");
 				
 			for(i=1;i<=noOfNodes;i++)
 			{

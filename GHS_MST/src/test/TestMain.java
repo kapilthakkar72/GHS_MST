@@ -15,7 +15,7 @@ public class TestMain
 		{
 			MstRunner.findMst(dataPathInput,dataPathOutput);
 		}
-		catch (IOException e)
+		catch (Exception e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
