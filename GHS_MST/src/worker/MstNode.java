@@ -11,11 +11,11 @@ import constants.MstConstants;
 import constants.StateType;
 import constants.StatusType;
 
-public class Node extends Thread
+public class MstNode extends Thread
 {
-	private static int branchCount;
+	private static int		branchCount;
 	private int				adjWeights[];
-	private Node			adjNodes[];
+	private MstNode			adjNodes[];
 	private int				level;
 	private StatusType		status[];
 	private StateType		state;
@@ -37,7 +37,7 @@ public class Node extends Thread
 		return status;
 	}
 	
-	public Node(int adjacentNodeInfo[], int index)
+	public MstNode(int adjacentNodeInfo[], int index)
 	{
 		// set weight info
 		this.adjWeights = adjacentNodeInfo;
@@ -55,27 +55,25 @@ public class Node extends Thread
 		this.parent = 0;
 	}
 	
-	public void setAdjNodes(Node adjNodes[])
+	public void setAdjNodes(MstNode adjNodes[])
 	{
 		this.adjNodes = adjNodes;
 		this.noOfNodes = adjNodes.length - 1;
-		branchCount=(noOfNodes-1)*2;
+		branchCount = (noOfNodes - 1) * 2;
 	}
 	
 	public void run()
 	{
 		while (!this.isInterrupted())
 		{
-			if(branchCount==0)
+			if (branchCount == 0)
 			{
-				//here
-				System.out.println("All thread terminating");
+				// here
 				terminateAll();
 			}
 			if (!message.isEmpty())
 			{
 				String msg = (String) this.message.get(0);
-				// System.out.println(msg);
 				this.message.remove(0);
 				processMessage(msg);
 			}
@@ -87,7 +85,7 @@ public class Node extends Thread
 		// check all neighbors to find min w(pq)
 		
 		int minWt = MstConstants.INFINITY;
-		Node q;
+		MstNode q;
 		
 		int i, minNodeIndex = 0;
 		
@@ -132,8 +130,6 @@ public class Node extends Thread
 		MessageType msgType = MessageType.getMsgType(splitMsgArr[0]);
 		int q = Integer.parseInt(splitMsgArr[1]);
 		
-		// System.out.println("I:" + this.myIndex + "Received message: " + msg);
-		
 		switch (msgType)
 		{
 			case CONNECT:
@@ -174,8 +170,8 @@ public class Node extends Thread
 			System.out.println(myIndex + " set " + q + " to Branch");
 			adjNodes[q].message.add("initiate " + myIndex + " " + level + " " + myName + " "
 					+ state.getStateStr());
-			if(state==StateType.FIND)
-				rec=rec+1;
+			if (state == StateType.FIND)
+				rec = rec + 1;
 		}
 		else if (status[q] == StatusType.BASIC)
 		{
@@ -213,14 +209,14 @@ public class Node extends Thread
 			{
 				String msg = StringUtils.join(splitMsgArr, ' ');
 				adjNodes[i].message.add(msg);
-				if(state==StateType.FIND)
-					rec=rec+1;
+				if (state == StateType.FIND)
+					rec = rec + 1;
 			}
 		}
 		
 		if (state == StateType.FIND)
 		{
-			//rec = 0;
+			// rec = 0;
 			findMin();
 		}
 		
@@ -253,13 +249,10 @@ public class Node extends Thread
 	
 	private void processReject(String splitMsgArr[], int q)
 	{
-		System.out.println("Received 'reject' msg from " + q);
-		
 		if (this.status[q] == StatusType.BASIC)
 		{
 			this.status[q] = StatusType.REJECT;
 		}
-		
 		findMin();
 	}
 	
@@ -305,17 +298,6 @@ public class Node extends Thread
 	
 	private void myReport()
 	{
-		int temp = 0;
-		for (int i = 1; i < noOfNodes; i++)
-		{
-			if (adjWeights[i] != 0)
-			{
-				if (i != parent && status[i] == StatusType.BRANCH)
-				{
-					temp++;
-				}
-			}
-		}
 		if (0 == rec && testNode == 0)
 		{
 			state = StateType.FOUND;
@@ -333,7 +315,7 @@ public class Node extends Thread
 				bestWeight = w;
 				bestNode = q;
 			}
-			//rec = rec + 1;
+			
 			rec = rec - 1;
 			myReport();
 		}
@@ -351,22 +333,21 @@ public class Node extends Thread
 			else if (w == bestWeight && w == MstConstants.INFINITY)
 			{
 				// stop
-				System.out.println("This node ended: " + myIndex);
 				terminateAll();
 			}
 		}
 	}
 	
-	private void terminateAll()
+	private synchronized void terminateAll()
 	{
-		for(int i=1;i<=noOfNodes;i++)
+		for (int i = 1; i <= noOfNodes; i++)
 		{
-			if(i!=myIndex)
+			if (i != myIndex)
 				adjNodes[i].interrupt();
 		}
 		this.interrupt();
 	}
-
+	
 	private void processChangeRoot()
 	{
 		if (status[bestNode] == StatusType.BRANCH)

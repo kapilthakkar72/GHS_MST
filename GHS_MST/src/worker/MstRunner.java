@@ -4,11 +4,9 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.Writer;
 
 import constants.StatusType;
 
@@ -37,7 +35,7 @@ public class MstRunner
 			
 			int noOfNodes = -1, i;
 			int adjacentNodeInfo[];
-			Node n[];
+			MstNode n[];
 			
 			if ((strLine = br.readLine()) != null)
 			{
@@ -45,7 +43,7 @@ public class MstRunner
 				noOfNodes = Integer.parseInt(strLine);
 			}
 			
-			n = new Node[noOfNodes + 1];
+			n = new MstNode[noOfNodes + 1];
 			
 			// Make Objects and initialize their weight array
 			for (i = 1; i <= noOfNodes; i++)
@@ -58,7 +56,7 @@ public class MstRunner
 					{
 						adjacentNodeInfo[j + 1] = Integer.parseInt(read[j]);
 					}
-					n[i] = new Node(adjacentNodeInfo, i);
+					n[i] = new MstNode(adjacentNodeInfo, i);
 				}
 			}
 			
