@@ -4,8 +4,6 @@ import java.util.Queue;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.sun.corba.se.impl.orbutil.closure.Constant;
-
 import constants.MessageType;
 import constants.MstConstants;
 import constants.StateType;
@@ -21,12 +19,12 @@ public class Node extends Thread
 	private int				rec;
 	private int				bestNode;
 	private int				bestWeight;
-	private int 			testNode;
+	private int				testNode;
 	private Queue<String>	message;
 	private int				noOfNodes;
 	private int				myIndex;
 	private String			myName;
-	private int parent;
+	private int				parent;
 
 	public Node(int adjacentNodeInfo[], int index)
 	{
@@ -40,6 +38,8 @@ public class Node extends Thread
 		}
 		this.myIndex = index;
 		this.state = StateType.SLEEP;
+		this.bestNode = 0; // though this is by default, mentioned to have
+							// clarity
 	}
 
 	public void setAdjNodes(Node adjNodes[])
@@ -115,10 +115,10 @@ public class Node extends Thread
 				processTest();
 				break;
 			case REJECT:
-				processReject();
+				processReject(splitMsgArr);
 				break;
 			case ACCEPT:
-				processAccept();
+				processAccept(splitMsgArr);
 				break;
 			case REPORT:
 				processReport();
@@ -140,54 +140,56 @@ public class Node extends Thread
 		if (L < level)
 		{
 			status[q] = StatusType.BRANCH;
-			adjNodes[q].message.add("initiate " + myIndex + " " + level + " " + myName + " " + state);
+			adjNodes[q].message.add("initiate " + myIndex + " " + level + " " + myName + " "
+					+ state);
 		}
-		else if(status[q]==StatusType.BASIC)
+		else if (status[q] == StatusType.BASIC)
 		{
-			String msg=StringUtils.join(splitMsgArr, ' ');
+			String msg = StringUtils.join(splitMsgArr, ' ');
 			message.add(msg);
 		}
 		else
 		{
-			adjNodes[q].message.add("initiate " + myIndex + " " + (level+1) + " " + myName + " " + state);
+			adjNodes[q].message.add("initiate " + myIndex + " " + (level + 1) + " " + myName + " "
+					+ state);
 		}
 	}
 
 	private void processInitiate(String splitMsgArr[])
 	{
 		// TODO - implement
-		int q=Integer.parseInt(splitMsgArr[1]);
+		int q = Integer.parseInt(splitMsgArr[1]);
 		int level_dash = Integer.parseInt(splitMsgArr[2]);
-		String name_dash=splitMsgArr[3];
-		String state_dash= splitMsgArr[4];
-		
-		this.level=level_dash;
-		this.myName=name_dash;
-		this.state=StateType.getMsgType(state_dash);
-		
-		this.parent=q;
-		
-		this.bestNode=0;
-		this.bestWeight=MstConstants.INFINITY;
-		this.testNode=0;
-		
+		String name_dash = splitMsgArr[3];
+		String state_dash = splitMsgArr[4];
+
+		this.level = level_dash;
+		this.myName = name_dash;
+		this.state = StateType.getMsgType(state_dash);
+
+		this.parent = q;
+
+		this.bestNode = 0;
+		this.bestWeight = MstConstants.INFINITY;
+		this.testNode = 0;
+
 		// send initiate message to my neighbors
-		
-		for(int i=1;i<=noOfNodes;i++)
+
+		for (int i = 1; i <= noOfNodes; i++)
 		{
-			if(adjWeights[i]!=0 && status[i]==StatusType.BRANCH && i!=q)
+			if (adjWeights[i] != 0 && status[i] == StatusType.BRANCH && i != q)
 			{
-				String msg=StringUtils.join(splitMsgArr, ' ');
+				String msg = StringUtils.join(splitMsgArr, ' ');
 				adjNodes[i].message.add(msg);
 			}
 		}
-		
-		if(state==StateType.FIND)
+
+		if (state == StateType.FIND)
 		{
-			rec=0;
-			//findMin();
+			rec = 0;
+			// findMin();
 		}
-		
+
 	}
 
 	private void processTest()
@@ -195,14 +197,46 @@ public class Node extends Thread
 		// TODO - implement
 	}
 
-	private void processReject()
+	private void processReject(String splitMsgArr[])
 	{
 		// TODO - implement
+		int q = Integer.parseInt(splitMsgArr[1]);
+		System.out.println("Received 'reject' msg from " + q);
+
+		if (this.status[q] == StatusType.BASIC)
+		{
+			this.status[q] = StatusType.REJECT;
+		}
+
+		findMin();
+
+		/*
+		 * if status [q] = basic then status [q] â†� reject end findMin()
+		 */
 	}
 
-	private void processAccept()
+	private void processAccept(String splitMsgArr[])
 	{
-		// TODO - implement
+		int q = Integer.parseInt(splitMsgArr[1]);
+		System.out.println("Received 'accept' msg from " + q);
+
+		this.testNode = 0;
+		if (this.adjWeights[q] < this.bestWeight)
+		{
+			this.bestWeight = this.adjWeights[q];
+			this.bestNode = q;
+		}
+		myReport();
+	}
+
+	private void findMin()
+	{
+
+	}
+
+	private void myReport()
+	{
+
 	}
 
 	private void processReport()
