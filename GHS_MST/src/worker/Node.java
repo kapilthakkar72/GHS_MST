@@ -73,7 +73,7 @@ public class Node extends Thread
 		
 		int minWt = MstConstants.INFINITY;
 		Node q;
-		int i, index = 0;
+		int i, minNodeIndex = 0;
 		
 		for (i = 1; i <= noOfNodes; i++)
 		{
@@ -82,22 +82,22 @@ public class Node extends Thread
 				if (minWt > adjWeights[i])
 				{
 					minWt = adjWeights[i];
-					index = i;
+					minNodeIndex = i;
 				}
 			}
 		}
-		if (index == 0)
+		if (minNodeIndex == 0)
 		{
 			System.out.println("Neighbor with min weight not found");
 		}
 		else
 		{
-			status[index] = StatusType.BRANCH;
+			status[minNodeIndex] = StatusType.BRANCH;
 			level = 0;
 			state = StateType.FOUND;
 			rec = 0;
-			myName = Integer.toString(adjWeights[index]);
-			q = adjNodes[index];
+			myName = Integer.toString(adjWeights[minNodeIndex]);
+			q = adjNodes[minNodeIndex];
 			
 			// send <connect,0> to q
 			q.message.add("connect " + myIndex + " 0");

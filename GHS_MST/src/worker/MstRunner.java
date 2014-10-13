@@ -47,11 +47,12 @@ public class MstRunner
 			}
 
 			n = new Node[noOfNodes + 1];
-			adjacentNodeInfo = new int[noOfNodes + 1];
+			
 
 			// Make Objects and initialize their weight array
 			for (i = 1; i <= noOfNodes; i++)
 			{
+				adjacentNodeInfo = new int[noOfNodes + 1];
 				if ((strLine = br.readLine()) != null)
 				{
 					String read[] = strLine.split(" ");
