@@ -1,7 +1,8 @@
 package worker;
 
+import java.util.Collections;
 import java.util.LinkedList;
-import java.util.Queue;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,7 +22,7 @@ public class Node extends Thread
 	private int				bestNode;
 	private int				bestWeight;
 	private int				testNode;
-	private Queue<String>	message;
+	private List<String>	message;
 	private int				noOfNodes;
 	private int				myIndex;
 	private String			myName;
@@ -49,7 +50,8 @@ public class Node extends Thread
 		this.state = StateType.SLEEP;
 		this.bestNode = 0; // though this is by default, mentioned to have
 							// clarity
-		this.message = new LinkedList<>();
+		this.message = Collections.synchronizedList(new LinkedList<>());
+		this.parent = 0;
 	}
 	
 	public void setAdjNodes(Node adjNodes[])
@@ -64,9 +66,38 @@ public class Node extends Thread
 		{
 			if (!message.isEmpty())
 			{
-				processMessage((String) message.remove());
+				String msg = (String) this.message.get(0);
+				// System.out.println(msg);
+				this.message.remove(0);
+				processMessage(msg);
+			}
+			else
+			{
+				boolean flag = true;
+				for (int i = 1; i < noOfNodes; i++)
+				{
+					if (adjWeights[i] != 0)
+						if (status[i] == StatusType.BASIC)
+						{
+							// System.out.println(myIndex + " says still " + i +
+							// " is basic");
+							flag = false;
+							break;
+						}
+				}
+				if (parent != 0)
+					if (flag && !adjNodes[parent].isAlive())
+					{
+						System.out.println("stpd.." + myIndex);
+						this.interrupt();
+						System.out.println("Intruppting ... " + myIndex);
+					}
+				
 			}
 		}
+		/*
+		 * try { sleep(1000); } catch (InterruptedException e) { System.out.println(e); }
+		 */
 	}
 	
 	public void initialize()
@@ -96,6 +127,7 @@ public class Node extends Thread
 		else
 		{
 			status[minNodeIndex] = StatusType.BRANCH;
+			System.out.println(myIndex + " set " + minNodeIndex + " to Branch");
 			level = 0;
 			state = StateType.FOUND;
 			rec = 0;
@@ -117,7 +149,7 @@ public class Node extends Thread
 		MessageType msgType = MessageType.getMsgType(splitMsgArr[0]);
 		int q = Integer.parseInt(splitMsgArr[1]);
 		
-		System.out.println("I:" + this.myIndex + " - Received message: " + msg);
+		// System.out.println("I:" + this.myIndex + "Received message: " + msg);
 		
 		switch (msgType)
 		{
@@ -155,6 +187,7 @@ public class Node extends Thread
 		if (L < level)
 		{
 			status[q] = StatusType.BRANCH;
+			System.out.println(myIndex + " set " + q + " to Branch");
 			adjNodes[q].message.add("initiate " + myIndex + " " + level + " " + myName + " "
 					+ state.getStateStr());
 		}
@@ -232,6 +265,8 @@ public class Node extends Thread
 	
 	private void processReject(String splitMsgArr[], int q)
 	{
+		System.out.println("Received 'reject' msg from " + q);
+		
 		if (this.status[q] == StatusType.BASIC)
 		{
 			this.status[q] = StatusType.REJECT;
@@ -342,6 +377,7 @@ public class Node extends Thread
 		}
 		else
 		{
+			System.out.println(myIndex + " set " + bestNode + " to Branch");
 			status[bestNode] = StatusType.BRANCH;
 			adjNodes[bestNode].message.add("connect " + myIndex + " " + level);
 		}
