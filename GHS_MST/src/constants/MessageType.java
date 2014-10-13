@@ -3,10 +3,13 @@ package constants;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 public enum MessageType
 {
+	// Advisable to keep strings in lower case
 	CONNECT("connect"), INITIATE("initiate"), TEST("test"), REJECT("reject"), ACCEPT("accept"), REPORT(
-			"report"), CHANGEROOT("changeRoot");
+			"report"), CHANGEROOT("changeroot");
 	
 	String	msgStr;
 	
@@ -25,6 +28,7 @@ public enum MessageType
 	
 	public static MessageType getMsgType(String msgStr)
 	{
+		msgStr = StringUtils.lowerCase(msgStr);
 		if (msgTypeMap == null)
 		{
 			initializeMap();

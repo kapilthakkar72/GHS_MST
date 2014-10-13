@@ -3,4 +3,4 @@
 ,,,,,,,,
 ,,,,,,,To-Do:,
 ,,Check:,,,,,,Check TODO(s)
-,,,Code Thing | not closing the streams (do the work & close),,,,,
+,,,Stop thread – only closing the current thread,,,,,
