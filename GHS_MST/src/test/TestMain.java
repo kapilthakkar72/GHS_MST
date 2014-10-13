@@ -6,7 +6,6 @@ import worker.MstRunner;
 
 public class TestMain
 {
-	
 	public static void main(String[] args)
 	{
 		String dataPath = "data/input.txt";
@@ -20,5 +19,4 @@ public class TestMain
 			e.printStackTrace();
 		}
 	}
-	
 }
