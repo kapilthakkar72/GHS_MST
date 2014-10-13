@@ -26,6 +26,14 @@ public class Node extends Thread
 	private String			myName;
 	private int				parent;
 	
+	/**
+	 * @return the status
+	 */
+	public StatusType[] getStatus()
+	{
+		return status;
+	}
+	
 	public Node(int adjacentNodeInfo[], int index)
 	{
 		// set weight info
@@ -50,7 +58,7 @@ public class Node extends Thread
 	
 	public void run()
 	{
-		while (true)
+		while (!this.isInterrupted())
 		{
 			if (!message.isEmpty())
 			{
@@ -112,7 +120,7 @@ public class Node extends Thread
 				processInitiate(splitMsgArr);
 				break;
 			case TEST:
-				processTest();
+				processTest(splitMsgArr);
 				break;
 			case REJECT:
 				processReject(splitMsgArr);
@@ -121,7 +129,7 @@ public class Node extends Thread
 				processAccept(splitMsgArr);
 				break;
 			case REPORT:
-				processReport();
+				processReport(splitMsgArr);
 				break;
 			case CHANGEROOT:
 				processChangeRoot();
@@ -191,9 +199,30 @@ public class Node extends Thread
 		
 	}
 	
-	private void processTest()
+	private void processTest(String splitMsgArr[])
 	{
-		// TODO - implement
+		int q = Integer.parseInt(splitMsgArr[1]);
+		int level_dash = Integer.parseInt(splitMsgArr[2]);
+		String name_dash = splitMsgArr[3];
+		
+		if (level_dash > level)
+		{
+			String msg = StringUtils.join(splitMsgArr, ' ');
+			message.add(msg);
+		}
+		else if (myName.equals(name_dash))
+		{
+			if (status[q] == StatusType.BASIC)
+				status[q] = StatusType.REJECT;
+			if (q != testNode)
+				adjNodes[q].message.add("reject " + myIndex);
+			else
+				findMin();
+		}
+		else
+		{
+			adjNodes[q].message.add("accept " + myIndex);
+		}
 	}
 	
 	private void processReject(String splitMsgArr[])
@@ -225,21 +254,97 @@ public class Node extends Thread
 	
 	private void findMin()
 	{
+		int minWt = MstConstants.INFINITY;
+		int i, index = 0;
 		
+		for (i = 1; i <= noOfNodes; i++)
+		{
+			if (adjWeights[i] != 0 && status[i] == StatusType.BASIC)
+			{
+				if (minWt > adjWeights[i])
+				{
+					minWt = adjWeights[i];
+					index = i;
+				}
+			}
+		}
+		
+		if (index != 0)
+		{
+			testNode = index;
+			adjNodes[index].message.add("test " + myIndex + " " + level + " " + myName);
+		}
+		else
+		{
+			testNode = 0;
+			myReport();
+		}
 	}
 	
 	private void myReport()
 	{
-		
+		int temp = 0;
+		for (int i = 1; i < noOfNodes; i++)
+		{
+			if (adjWeights[i] != 0)
+			{
+				if (i != parent && status[i] == StatusType.BRANCH)
+				{
+					temp++;
+				}
+			}
+		}
+		if (temp == rec && testNode == 0)
+		{
+			state = StateType.FOUND;
+			adjNodes[parent].message.add("report " + myIndex + " " + bestWeight);
+		}
 	}
 	
-	private void processReport()
+	private void processReport(String splitMsgArr[])
 	{
-		// TODO - implement
+		int q = Integer.parseInt(splitMsgArr[1]);
+		int w = Integer.parseInt(splitMsgArr[2]);
+		if (q != parent)
+		{
+			if (w > bestWeight)
+			{
+				bestWeight = w;
+				bestNode = q;
+			}
+			rec = rec + 1;
+			myReport();
+		}
+		else
+		{
+			if (state == StateType.FIND)
+			{
+				String msg = StringUtils.join(splitMsgArr, ' ');
+				message.add(msg);
+			}
+			else if (w > bestWeight)
+			{
+				processChangeRoot();
+			}
+			else if (w == bestWeight && w == MstConstants.INFINITY)
+			{
+				// stop
+				this.interrupt();
+			}
+		}
 	}
 	
 	private void processChangeRoot()
 	{
-		// TODO - implement
+		if (status[bestNode] == StatusType.BRANCH)
+		{
+			// send change-root to best node
+			adjNodes[bestNode].message.add("changeroot " + myIndex);
+		}
+		else
+		{
+			status[bestNode] = StatusType.BRANCH;
+			adjNodes[bestNode].message.add("connect " + myIndex + " " + level);
+		}
 	}
 }
