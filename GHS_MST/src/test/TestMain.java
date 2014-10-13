@@ -8,11 +8,12 @@ public class TestMain
 {
 	public static void main(String[] args)
 	{
-		String dataPath = "data/input.txt";
+		String dataPathInput = "data/input.txt";
+		String dataPathOutput = "data/output.txt";
 		System.out.println("Started");
 		try
 		{
-			MstRunner.findMst(dataPath);
+			MstRunner.findMst(dataPathInput,dataPathOutput);
 		}
 		catch (IOException e)
 		{

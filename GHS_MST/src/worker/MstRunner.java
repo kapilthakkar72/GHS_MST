@@ -2,10 +2,15 @@ package worker;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Writer;
+
+import constants.StatusType;
 
 public class MstRunner
 {
@@ -15,14 +20,15 @@ public class MstRunner
 		// Making constructor private, don't want anyone to make the object
 	}
 
-	public static void findMst(String dataPath) throws IOException
+	public static void findMst(String dataPathInput,String dataPathOutput) throws IOException
 	{
 		FileInputStream fstream = null;
 		DataInputStream in = null;
+		FileWriter writer=null;
 		try
 		{
 
-			fstream = new FileInputStream(dataPath);
+			fstream = new FileInputStream(dataPathInput);
 
 			in = new DataInputStream(fstream);
 
@@ -69,6 +75,26 @@ public class MstRunner
 				n[i].initialize();
 				n[i].start();
 			}
+			
+			// Print the selected edges
+			
+			File file = new File(dataPathOutput);
+		    // creates the file
+		    file.createNewFile();
+		    // creates a FileWriter Object
+		    writer = new FileWriter(file); 
+		    // Writes the content to the file
+				
+			for(i=1;i<=noOfNodes;i++)
+			{
+				for(int j=i+1;j<=noOfNodes;j++)
+				{
+					if((n[i].getStatus())[j] ==StatusType.BRANCH)
+					{
+						writer.write(i+" -> "+j+"\n");
+					}
+				}
+			}
 		}
 		finally
 		{
@@ -82,6 +108,12 @@ public class MstRunner
 				if (in != null)
 				{
 					in.close();
+				}
+				
+				if(writer!=null)
+				{
+					writer.flush();
+				    writer.close();
 				}
 			}
 			catch (IOException e)
