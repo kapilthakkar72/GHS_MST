@@ -1,7 +1,5 @@
 package test;
 
-import java.io.IOException;
-
 import worker.MstRunner;
 
 public class TestMain
@@ -15,7 +13,7 @@ public class TestMain
 		{
 			MstRunner.findMst(dataPathInput,dataPathOutput);
 		}
-		catch (IOException e)
+		catch (Exception e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
