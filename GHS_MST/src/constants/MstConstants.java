@@ -1,6 +1,6 @@
 package constants;
 
-public class Constants
+public class MstConstants
 {
 	public static final int	INFINITY	= 999999;
 }

@@ -3,10 +3,9 @@ package worker;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-
-import util.Utils;
 
 public class MstRunner
 {
@@ -18,54 +17,78 @@ public class MstRunner
 
 	public static void findMst(String dataPath) throws IOException
 	{
-		// Utils u = new Utils(dataPath);
-
-		FileInputStream fstream = new FileInputStream(dataPath);
-		;
-		DataInputStream in = new DataInputStream(fstream);
-
-		BufferedReader br = new BufferedReader(new InputStreamReader(in));
-		String strLine;
-		int count = 0;
-
-		int noOfNodes = -1, i;
-		int adjacentNodeInfo[];
-		Node n[];
-
-		if ((strLine = br.readLine()) != null)
+		FileInputStream fstream = null;
+		DataInputStream in = null;
+		try
 		{
-			// It is the first Line - Number of Nodes
-			noOfNodes = Integer.parseInt(strLine);
-		}
 
-		n = new Node[noOfNodes + 1];
-		adjacentNodeInfo = new int[noOfNodes + 1];
+			fstream = new FileInputStream(dataPath);
 
-		// Make Objects and initialize their weight array
-		for (i = 1; i <= noOfNodes; i++)
-		{
+			in = new DataInputStream(fstream);
+
+			BufferedReader br = new BufferedReader(new InputStreamReader(in));
+			String strLine;
+			int count = 0;
+
+			int noOfNodes = -1, i;
+			int adjacentNodeInfo[];
+			Node n[];
+
 			if ((strLine = br.readLine()) != null)
 			{
-				String read[] = strLine.split(" ");
-				for (int j = 0; j < noOfNodes; j++)
+				// It is the first Line - Number of Nodes
+				noOfNodes = Integer.parseInt(strLine);
+			}
+
+			n = new Node[noOfNodes + 1];
+			adjacentNodeInfo = new int[noOfNodes + 1];
+
+			// Make Objects and initialize their weight array
+			for (i = 1; i <= noOfNodes; i++)
+			{
+				if ((strLine = br.readLine()) != null)
 				{
-					adjacentNodeInfo[j + 1] = Integer.parseInt(read[j]);
+					String read[] = strLine.split(" ");
+					for (int j = 0; j < noOfNodes; j++)
+					{
+						adjacentNodeInfo[j + 1] = Integer.parseInt(read[j]);
+					}
+					n[i] = new Node(adjacentNodeInfo,i);
 				}
-				n[i] = new Node(adjacentNodeInfo);
+			}
+
+			// Initialize information about adjacent nodes
+			for (i = 1; i <= noOfNodes; i++)
+			{
+				n[i].setAdjNodes(n);
+			}
+
+			// Start every Node
+			for (i = 1; i <= noOfNodes; i++)
+			{
+				n[i].initialize();
+				n[i].start();
 			}
 		}
-
-		// Initialize information about adjacent nodes
-		for (i = 1; i <= noOfNodes; i++)
+		finally
 		{
-			n[i].setAdjNodes(n);
-		}
+			try
+			{
+				if (fstream != null)
+				{
+					fstream.close();
+				}
 
-		// Start every Node
-		for (i = 1; i <= noOfNodes; i++)
-		{
-			n[i].initialize();
-			n[i].start();
+				if (in != null)
+				{
+					in.close();
+				}
+			}
+			catch (IOException e)
+			{
+				System.out.println("Error closing stream, continuing");
+			}
+
 		}
 
 	}
