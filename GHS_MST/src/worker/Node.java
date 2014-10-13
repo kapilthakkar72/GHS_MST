@@ -117,7 +117,7 @@ public class Node extends Thread
 		MessageType msgType = MessageType.getMsgType(splitMsgArr[0]);
 		int q = Integer.parseInt(splitMsgArr[1]);
 		
-		System.out.println("I:" + this.myIndex + "Received message: " + msg);
+		System.out.println("I:" + this.myIndex + " - Received message: " + msg);
 		
 		switch (msgType)
 		{
@@ -232,8 +232,6 @@ public class Node extends Thread
 	
 	private void processReject(String splitMsgArr[], int q)
 	{
-		System.out.println("Received 'reject' msg from " + q);
-		
 		if (this.status[q] == StatusType.BASIC)
 		{
 			this.status[q] = StatusType.REJECT;
@@ -244,8 +242,6 @@ public class Node extends Thread
 	
 	private void processAccept(String splitMsgArr[], int q)
 	{
-		System.out.println("Received 'accept' msg from " + q);
-		
 		this.testNode = 0;
 		if (this.adjWeights[q] < this.bestWeight)
 		{

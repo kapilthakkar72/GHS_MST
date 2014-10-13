@@ -1,7 +1,7 @@
 package constants;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -43,7 +43,7 @@ public enum MessageType
 	
 	private static void initializeMap()
 	{
-		msgTypeMap = new HashMap<>();
+		msgTypeMap = new ConcurrentHashMap<>();
 		for (MessageType msgType : MessageType.values())
 		{
 			msgTypeMap.put(msgType.msgStr, msgType);
