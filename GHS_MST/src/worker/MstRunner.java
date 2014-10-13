@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import constants.MstGlobals;
 import constants.StatusType;
 
 public class MstRunner
@@ -17,87 +18,46 @@ public class MstRunner
 		// Making constructor private, don't want anyone to make the object
 	}
 	
-	public static void findMst(String dataPathInput, String dataPathOutput) throws IOException,
-			InterruptedException
+	private static void readFromFile(String dataPathInput) throws IOException
 	{
 		FileInputStream fstream = null;
 		DataInputStream in = null;
-		FileWriter writer = null;
 		try
 		{
-			
 			fstream = new FileInputStream(dataPathInput);
-			
 			in = new DataInputStream(fstream);
-			
 			BufferedReader br = new BufferedReader(new InputStreamReader(in));
 			String strLine;
 			
-			int noOfNodes = -1, i;
 			int adjacentNodeInfo[];
-			MstNode n[];
 			
 			if ((strLine = br.readLine()) != null)
 			{
 				// It is the first Line - Number of Nodes
-				noOfNodes = Integer.parseInt(strLine);
+				MstGlobals.noOfNodes = Integer.parseInt(strLine);
 			}
 			
-			n = new MstNode[noOfNodes + 1];
+			MstGlobals.n = new MstNode[MstGlobals.noOfNodes + 1];
 			
 			// Make Objects and initialize their weight array
-			for (i = 1; i <= noOfNodes; i++)
+			for (int i = 1; i <= MstGlobals.noOfNodes; i++)
 			{
-				adjacentNodeInfo = new int[noOfNodes + 1];
+				adjacentNodeInfo = new int[MstGlobals.noOfNodes + 1];
 				if ((strLine = br.readLine()) != null)
 				{
 					String read[] = strLine.split(" ");
-					for (int j = 0; j < noOfNodes; j++)
+					for (int j = 0; j < MstGlobals.noOfNodes; j++)
 					{
 						adjacentNodeInfo[j + 1] = Integer.parseInt(read[j]);
 					}
-					n[i] = new MstNode(adjacentNodeInfo, i);
+					MstGlobals.n[i] = new MstNode(adjacentNodeInfo, i);
 				}
 			}
 			
 			// Initialize information about adjacent nodes
-			for (i = 1; i <= noOfNodes; i++)
+			for (int i = 1; i <= MstGlobals.noOfNodes; i++)
 			{
-				n[i].setAdjNodes(n);
-			}
-			
-			// Start every Node
-			for (i = 1; i <= noOfNodes; i++)
-			{
-				n[i].initialize();
-				n[i].start();
-			}
-			
-			// Print the selected edges
-			
-			File file = new File(dataPathOutput);
-			// creates the file
-			file.createNewFile();
-			// creates a FileWriter Object
-			writer = new FileWriter(file);
-			// Writes the content to the file
-			
-			for (i = 1; i <= noOfNodes; i++)
-			{
-				n[i].join();
-			}
-			
-			System.out.println("All nodes finished");
-			
-			for (i = 1; i <= noOfNodes; i++)
-			{
-				for (int j = i + 1; j <= noOfNodes; j++)
-				{
-					if ((n[i].getStatus())[j] == StatusType.BRANCH)
-					{
-						writer.write(i + " -> " + j + "\n");
-					}
-				}
+				MstGlobals.n[i].setAdjNodes(MstGlobals.n);
 			}
 		}
 		finally
@@ -108,24 +68,73 @@ public class MstRunner
 				{
 					fstream.close();
 				}
-				
 				if (in != null)
 				{
 					in.close();
 				}
-				
+			}
+			catch (IOException e)
+			{
+				System.out.println("Error closing input stream, continuing");
+			}
+		}
+	}
+	
+	private static void writeToFile(String dataPathOutput) throws IOException
+	{
+		FileWriter writer = null;
+		try
+		{
+			File file = new File(dataPathOutput);
+			file.createNewFile();
+			writer = new FileWriter(file);
+			
+			for (int i = 1; i <= MstGlobals.noOfNodes; i++)
+			{
+				for (int j = i + 1; j <= MstGlobals.noOfNodes; j++)
+				{
+					if ((MstGlobals.n[i].getStatus())[j] == StatusType.BRANCH)
+					{
+						writer.write(i + " -> " + j + "\n");
+					}
+				}
+			}
+		}
+		finally
+		{
+			try
+			{
 				if (writer != null)
 				{
-					writer.flush();
 					writer.close();
 				}
 			}
 			catch (IOException e)
 			{
-				System.out.println("Error closing stream, continuing");
+				System.out.println("Error closing output stream, continuing");
 			}
-			
+		}
+	}
+	
+	public static void findMst(String dataPathInput, String dataPathOutput) throws IOException,
+			InterruptedException
+	{
+		readFromFile(dataPathInput);
+		
+		// Start every Node
+		for (int i = 1; i <= MstGlobals.noOfNodes; i++)
+		{
+			MstGlobals.n[i].initialize();
+			MstGlobals.n[i].start();
 		}
 		
+		for (int i = 1; i <= MstGlobals.noOfNodes; i++)
+		{
+			MstGlobals.n[i].join();
+		}
+		
+		System.out.println("All nodes finished");
+		
+		writeToFile(dataPathOutput);
 	}
 }
