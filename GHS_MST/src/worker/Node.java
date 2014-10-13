@@ -14,10 +14,12 @@ public class Node extends Thread
 	private StatusType		status[];
 	private StateType		state;
 	private int				rec;
-	private Node			bestNode;
+	private int				bestNode;
 	private int				bestWeight;
-	private Node			testNode;
+	private int				testNode;
 	private Queue<String>	message;
+	
+	// Node '0' means none/null, since the program have all nodes starting with 1
 	
 	public Node(int adjacentNodeInfo[])
 	{
@@ -31,7 +33,7 @@ public class Node extends Thread
 		}
 		
 		this.state = StateType.SLEEP;
-		this.bestNode = null;
+		this.bestNode = 0; // though this is by default, mentioned to have clarity
 	}
 	
 	public void setAdjNodes(Node adjNodes[])
@@ -74,10 +76,10 @@ public class Node extends Thread
 				processTest();
 				break;
 			case REJECT:
-				processReject();
+				processReject(splitMsgArr);
 				break;
 			case ACCEPT:
-				processAccept();
+				processAccept(splitMsgArr);
 				break;
 			case REPORT:
 				processReport();
@@ -105,14 +107,46 @@ public class Node extends Thread
 		// TODO - implement
 	}
 	
-	private void processReject()
+	private void processReject(String splitMsgArr[])
 	{
 		// TODO - implement
+		int q = Integer.parseInt(splitMsgArr[1]);
+		System.out.println("Received 'reject' msg from " + q);
+		
+		if (this.status[q] == StatusType.BASIC)
+		{
+			this.status[q] = StatusType.REJECT;
+		}
+		
+		findMin();
+		
+		/*
+		 * if status [q] = basic then status [q] ← reject end findMin()
+		 */
 	}
 	
-	private void processAccept()
+	private void processAccept(String splitMsgArr[])
 	{
-		// TODO - implement
+		int q = Integer.parseInt(splitMsgArr[1]);
+		System.out.println("Received 'accept' msg from " + q);
+		
+		this.testNode = 0;
+		if (this.adjWeights[q] < this.bestWeight)
+		{
+			this.bestWeight = this.adjWeights[q];
+			this.bestNode = q;
+		}
+		myReport();
+	}
+	
+	private void findMin()
+	{
+		
+	}
+	
+	private void myReport()
+	{
+		
 	}
 	
 	private void processReport()

@@ -9,6 +9,7 @@ public class TestMain
 	public static void main(String[] args)
 	{
 		String dataPath = "data/input.txt";
+		System.out.println("Started");
 		try
 		{
 			MstRunner.findMst(dataPath);
