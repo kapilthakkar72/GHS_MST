@@ -113,8 +113,10 @@ public class Node extends Thread
 
 		// s[0] will be function name and rest arguments
 		MessageType msgType = MessageType.getMsgType(splitMsgArr[0]);
+		
+		System.out.println("Mssage Type : "+splitMsgArr[0]);
 
-		switch (msgType)
+		switch(msgType)
 		{
 			case CONNECT:
 				processConnect(splitMsgArr);
@@ -161,8 +163,9 @@ public class Node extends Thread
 		}
 		else
 		{
+			System.out.println("Sending initiate");
 			adjNodes[q].message.add("initiate " + myIndex + " " + (level + 1) + " " + myName + " "
-					+ state);
+					+ StateType.FIND);
 		}
 	}
 
@@ -193,6 +196,8 @@ public class Node extends Thread
 				adjNodes[i].message.add(msg);
 			}
 		}
+		
+		System.out.println("My state is : "+state);
 
 		if (state == StateType.FIND)
 		{
@@ -259,6 +264,8 @@ public class Node extends Thread
 	{
 		int minWt = MstConstants.INFINITY;
 		int i, index = 0;
+		
+		System.out.println("Inside find min");
 
 		for (i = 1; i <= noOfNodes; i++)
 		{
@@ -271,6 +278,8 @@ public class Node extends Thread
 				}
 			}
 		}
+		
+		System.out.println("Index: "+index);
 
 		if (index != 0)
 		{
