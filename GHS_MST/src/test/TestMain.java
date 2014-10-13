@@ -1,7 +1,5 @@
 package test;
 
-import java.io.IOException;
-
 import worker.MstRunner;
 
 public class TestMain

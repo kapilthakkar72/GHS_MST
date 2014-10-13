@@ -1,7 +1,8 @@
 package worker;
 
+import java.util.Collections;
 import java.util.LinkedList;
-import java.util.Queue;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,7 +22,7 @@ public class Node extends Thread
 	private int				bestNode;
 	private int				bestWeight;
 	private int				testNode;
-	private Queue<String>	message;
+	private List<String>	message;
 	private int				noOfNodes;
 	private int				myIndex;
 	private String			myName;
@@ -49,7 +50,8 @@ public class Node extends Thread
 		this.state = StateType.SLEEP;
 		this.bestNode = 0; // though this is by default, mentioned to have
 							// clarity
-		this.message = new LinkedList<>();
+		this.message = Collections.synchronizedList(new LinkedList<>());
+		this.parent = 0;
 	}
 
 	public void setAdjNodes(Node adjNodes[])
@@ -64,9 +66,39 @@ public class Node extends Thread
 		{
 			if (!message.isEmpty())
 			{
-				processMessage((String) message.remove());
+				String msg = (String) this.message.get(0);
+				// System.out.println(msg);
+				this.message.remove(0);
+				processMessage(msg);
+			}
+			else
+			{
+				boolean flag = true;
+				for (int i = 1; i < noOfNodes; i++)
+				{
+					if (adjWeights[i] != 0)
+						if (status[i] == StatusType.BASIC)
+						{
+							// System.out.println(myIndex + " says still " + i +
+							// " is basic");
+							flag = false;
+							break;
+						}
+				}
+				if (parent != 0)
+					if (flag && !adjNodes[parent].isAlive())
+					{
+						System.out.println("stpd.." + myIndex);
+						this.interrupt();
+						System.out.println("Intruppting ... " + myIndex);
+					}
+
 			}
 		}
+		/*
+		 * try { sleep(1000); } catch (InterruptedException e) {
+		 * System.out.println(e); }
+		 */
 	}
 
 	public void initialize()
@@ -75,7 +107,8 @@ public class Node extends Thread
 
 		int minWt = MstConstants.INFINITY;
 		Node q;
-		int i, index = 0;
+
+		int i, minNodeIndex = 0;
 
 		for (i = 1; i <= noOfNodes; i++)
 		{
@@ -84,22 +117,24 @@ public class Node extends Thread
 				if (minWt > adjWeights[i])
 				{
 					minWt = adjWeights[i];
-					index = i;
+					minNodeIndex = i;
 				}
 			}
 		}
-		if (index == 0)
+		if (minNodeIndex == 0)
 		{
 			System.out.println("Neighbor with min weight not found");
 		}
 		else
 		{
-			status[index] = StatusType.BRANCH;
+			status[minNodeIndex] = StatusType.BRANCH;
+			System.out.println(myIndex + " set " + minNodeIndex + " to Branch");
 			level = 0;
 			state = StateType.FOUND;
 			rec = 0;
-			myName = Integer.toString(adjWeights[index]);
-			q = adjNodes[index];
+
+			myName = Integer.toString(adjWeights[minNodeIndex]);
+			q = adjNodes[minNodeIndex];
 
 			// send <connect,0> to q
 			String s = "connect " + myIndex + " 0";
@@ -113,28 +148,29 @@ public class Node extends Thread
 
 		// s[0] will be function name and rest arguments
 		MessageType msgType = MessageType.getMsgType(splitMsgArr[0]);
-		
-		System.out.println("Mssage Type : "+splitMsgArr[0]);
+		int q = Integer.parseInt(splitMsgArr[1]);
 
-		switch(msgType)
+		// System.out.println("I:" + this.myIndex + "Received message: " + msg);
+
+		switch (msgType)
 		{
 			case CONNECT:
-				processConnect(splitMsgArr);
+				processConnect(splitMsgArr, q);
 				break;
 			case INITIATE:
-				processInitiate(splitMsgArr);
+				processInitiate(splitMsgArr, q);
 				break;
 			case TEST:
-				processTest(splitMsgArr);
+				processTest(splitMsgArr, q);
 				break;
 			case REJECT:
-				processReject(splitMsgArr);
+				processReject(splitMsgArr, q);
 				break;
 			case ACCEPT:
-				processAccept(splitMsgArr);
+				processAccept(splitMsgArr, q);
 				break;
 			case REPORT:
-				processReport(splitMsgArr);
+				processReport(splitMsgArr, q);
 				break;
 			case CHANGEROOT:
 				processChangeRoot();
@@ -144,17 +180,17 @@ public class Node extends Thread
 		}
 	}
 
-	private void processConnect(String splitMsgArr[])
+	private void processConnect(String splitMsgArr[], int q)
 	{
 		// 1 argument = level
 		int L = Integer.parseInt(splitMsgArr[2]);
-		int q = Integer.parseInt(splitMsgArr[1]);
 
 		if (L < level)
 		{
 			status[q] = StatusType.BRANCH;
+			System.out.println(myIndex + " set " + q + " to Branch");
 			adjNodes[q].message.add("initiate " + myIndex + " " + level + " " + myName + " "
-					+ state);
+					+ state.getStateStr());
 		}
 		else if (status[q] == StatusType.BASIC)
 		{
@@ -163,15 +199,13 @@ public class Node extends Thread
 		}
 		else
 		{
-			System.out.println("Sending initiate");
 			adjNodes[q].message.add("initiate " + myIndex + " " + (level + 1) + " " + myName + " "
-					+ StateType.FIND);
+					+ StateType.FIND.getStateStr());
 		}
 	}
 
-	private void processInitiate(String splitMsgArr[])
+	private void processInitiate(String splitMsgArr[], int q)
 	{
-		int q = Integer.parseInt(splitMsgArr[1]);
 		int level_dash = Integer.parseInt(splitMsgArr[2]);
 		String name_dash = splitMsgArr[3];
 		String state_dash = splitMsgArr[4];
@@ -196,8 +230,6 @@ public class Node extends Thread
 				adjNodes[i].message.add(msg);
 			}
 		}
-		
-		System.out.println("My state is : "+state);
 
 		if (state == StateType.FIND)
 		{
@@ -207,9 +239,8 @@ public class Node extends Thread
 
 	}
 
-	private void processTest(String splitMsgArr[])
+	private void processTest(String splitMsgArr[], int q)
 	{
-		int q = Integer.parseInt(splitMsgArr[1]);
 		int level_dash = Integer.parseInt(splitMsgArr[2]);
 		String name_dash = splitMsgArr[3];
 
@@ -233,9 +264,8 @@ public class Node extends Thread
 		}
 	}
 
-	private void processReject(String splitMsgArr[])
+	private void processReject(String splitMsgArr[], int q)
 	{
-		int q = Integer.parseInt(splitMsgArr[1]);
 		System.out.println("Received 'reject' msg from " + q);
 
 		if (this.status[q] == StatusType.BASIC)
@@ -246,10 +276,8 @@ public class Node extends Thread
 		findMin();
 	}
 
-	private void processAccept(String splitMsgArr[])
+	private void processAccept(String splitMsgArr[], int q)
 	{
-		int q = Integer.parseInt(splitMsgArr[1]);
-		System.out.println("Received 'accept' msg from " + q);
 
 		this.testNode = 0;
 		if (this.adjWeights[q] < this.bestWeight)
@@ -264,8 +292,6 @@ public class Node extends Thread
 	{
 		int minWt = MstConstants.INFINITY;
 		int i, index = 0;
-		
-		System.out.println("Inside find min");
 
 		for (i = 1; i <= noOfNodes; i++)
 		{
@@ -278,8 +304,6 @@ public class Node extends Thread
 				}
 			}
 		}
-		
-		System.out.println("Index: "+index);
 
 		if (index != 0)
 		{
@@ -313,9 +337,8 @@ public class Node extends Thread
 		}
 	}
 
-	private void processReport(String splitMsgArr[])
+	private void processReport(String splitMsgArr[], int q)
 	{
-		int q = Integer.parseInt(splitMsgArr[1]);
 		int w = Integer.parseInt(splitMsgArr[2]);
 		if (q != parent)
 		{
@@ -341,7 +364,7 @@ public class Node extends Thread
 			else if (w == bestWeight && w == MstConstants.INFINITY)
 			{
 				// stop
-				System.out.println("This node ended: "+myIndex);
+				System.out.println("This node ended: " + myIndex);
 				this.interrupt();
 			}
 		}
@@ -356,6 +379,7 @@ public class Node extends Thread
 		}
 		else
 		{
+			System.out.println(myIndex + " set " + bestNode + " to Branch");
 			status[bestNode] = StatusType.BRANCH;
 			adjNodes[bestNode].message.add("connect " + myIndex + " " + level);
 		}
