@@ -14,7 +14,6 @@ import constants.StatusType;
 
 public class MstRunner
 {
-	
 	private MstRunner()
 	{
 		// Making constructor private, don't want anyone to make the object

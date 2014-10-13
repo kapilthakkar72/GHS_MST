@@ -13,6 +13,7 @@ import constants.StatusType;
 
 public class Node extends Thread
 {
+	private static int branchCount;
 	private int				adjWeights[];
 	private Node			adjNodes[];
 	private int				level;
@@ -58,12 +59,19 @@ public class Node extends Thread
 	{
 		this.adjNodes = adjNodes;
 		this.noOfNodes = adjNodes.length - 1;
+		branchCount=(noOfNodes-1)*2;
 	}
 
 	public void run()
 	{
 		while (!this.isInterrupted())
 		{
+			if(branchCount==0)
+			{
+				//here
+				System.out.println("All thread terminating");
+				terminateAll();
+			}
 			if (!message.isEmpty())
 			{
 				String msg = (String) this.message.get(0);
@@ -71,34 +79,7 @@ public class Node extends Thread
 				this.message.remove(0);
 				processMessage(msg);
 			}
-			else
-			{
-				boolean flag = true;
-				for (int i = 1; i < noOfNodes; i++)
-				{
-					if (adjWeights[i] != 0)
-						if (status[i] == StatusType.BASIC)
-						{
-							// System.out.println(myIndex + " says still " + i +
-							// " is basic");
-							flag = false;
-							break;
-						}
-				}
-				if (parent != 0)
-					if (flag && !adjNodes[parent].isAlive())
-					{
-						System.out.println("stpd.." + myIndex);
-						this.interrupt();
-						System.out.println("Intruppting ... " + myIndex);
-					}
-
-			}
 		}
-		/*
-		 * try { sleep(1000); } catch (InterruptedException e) {
-		 * System.out.println(e); }
-		 */
 	}
 
 	public void initialize()
@@ -128,6 +109,7 @@ public class Node extends Thread
 		else
 		{
 			status[minNodeIndex] = StatusType.BRANCH;
+			branchCount--;
 			System.out.println(myIndex + " set " + minNodeIndex + " to Branch");
 			level = 0;
 			state = StateType.FOUND;
@@ -188,9 +170,12 @@ public class Node extends Thread
 		if (L < level)
 		{
 			status[q] = StatusType.BRANCH;
+			branchCount--;
 			System.out.println(myIndex + " set " + q + " to Branch");
 			adjNodes[q].message.add("initiate " + myIndex + " " + level + " " + myName + " "
 					+ state.getStateStr());
+			if(state==StateType.FIND)
+				rec=rec+1;
 		}
 		else if (status[q] == StatusType.BASIC)
 		{
@@ -228,12 +213,14 @@ public class Node extends Thread
 			{
 				String msg = StringUtils.join(splitMsgArr, ' ');
 				adjNodes[i].message.add(msg);
+				if(state==StateType.FIND)
+					rec=rec+1;
 			}
 		}
 
 		if (state == StateType.FIND)
 		{
-			rec = 0;
+			//rec = 0;
 			findMin();
 		}
 
@@ -330,7 +317,7 @@ public class Node extends Thread
 				}
 			}
 		}
-		if (temp == rec && testNode == 0)
+		if (0 == rec && testNode == 0)
 		{
 			state = StateType.FOUND;
 			adjNodes[parent].message.add("report " + myIndex + " " + bestWeight);
@@ -347,7 +334,8 @@ public class Node extends Thread
 				bestWeight = w;
 				bestNode = q;
 			}
-			rec = rec + 1;
+			//rec = rec + 1;
+			rec = rec - 1;
 			myReport();
 		}
 		else
@@ -365,9 +353,19 @@ public class Node extends Thread
 			{
 				// stop
 				System.out.println("This node ended: " + myIndex);
-				this.interrupt();
+				terminateAll();
 			}
 		}
+	}
+
+	private void terminateAll()
+	{
+		for(int i=1;i<=noOfNodes;i++)
+		{
+			if(i!=myIndex)
+				adjNodes[i].interrupt();
+		}
+		this.interrupt();
 	}
 
 	private void processChangeRoot()
@@ -381,6 +379,7 @@ public class Node extends Thread
 		{
 			System.out.println(myIndex + " set " + bestNode + " to Branch");
 			status[bestNode] = StatusType.BRANCH;
+			branchCount--;
 			adjNodes[bestNode].message.add("connect " + myIndex + " " + level);
 		}
 	}
