@@ -69,6 +69,12 @@ public class MyJunit
 		executeTest(9);
 	}
 	
+	@Test
+	public void test10() throws IOException, InterruptedException
+	{
+		executeTest(10);
+	}
+	
 	private boolean compareOutput(String reqOutputPath) throws IOException
 	{
 		File outputFile = new File(dataPathOutput);
@@ -98,7 +104,7 @@ public class MyJunit
 	
 	private void executeTest(int testNum) throws IOException, InterruptedException
 	{
-		System.out.println("Executing testcase " + testNum);
+		System.out.println("---Executing testcase " + testNum);
 		dataPathInput = "data/testcases/input" + testNum + ".txt";
 		MstRunner.findMst(dataPathInput, dataPathOutput);
 		Assert.assertTrue(compareOutput("data/testcases/output" + testNum + ".txt"));

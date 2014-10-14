@@ -77,7 +77,7 @@ public class MstNode extends Thread
 		}
 	}
 	
-	public void initialize()
+	public void wakeUp()
 	{
 		// check all neighbors to find min w(pq)
 		
@@ -167,7 +167,9 @@ public class MstNode extends Thread
 			adjNodes[q].message.add("initiate " + myIndex + " " + level + " " + myName + " "
 					+ state.getStateStr());
 			if (state == StateType.FIND)
+			{
 				rec = rec + 1;
+			}
 		}
 		else if (status[q] == StatusType.BASIC)
 		{
@@ -176,8 +178,8 @@ public class MstNode extends Thread
 		}
 		else
 		{
-			adjNodes[q].message.add("initiate " + myIndex + " " + (level + 1) + " " + myName + " "
-					+ StateType.FIND.getStateStr());
+			adjNodes[q].message.add("initiate " + myIndex + " " + (level + 1) + " "
+					+ this.adjWeights[q] + " " + StateType.FIND.getStateStr());
 		}
 	}
 	
@@ -195,7 +197,6 @@ public class MstNode extends Thread
 		
 		this.bestNode = 0;
 		this.bestWeight = MstConstants.INFINITY;
-		this.testNode = 0;
 		
 		// send initiate message to my neighbors
 		
@@ -205,8 +206,11 @@ public class MstNode extends Thread
 			{
 				String msg = StringUtils.join(splitMsgArr, ' ');
 				adjNodes[i].message.add(msg);
+				
 				if (state == StateType.FIND)
+				{
 					rec = rec + 1;
+				}
 			}
 		}
 		
@@ -228,18 +232,24 @@ public class MstNode extends Thread
 			String msg = StringUtils.join(splitMsgArr, ' ');
 			message.add(msg);
 		}
-		else if (myName.equals(name_dash))
+		else if (!myName.equals(name_dash))
 		{
-			if (status[q] == StatusType.BASIC)
-				status[q] = StatusType.REJECT;
-			if (q != testNode)
-				adjNodes[q].message.add("reject " + myIndex);
-			else
-				findMin();
+			adjNodes[q].message.add("accept " + myIndex);
 		}
 		else
 		{
-			adjNodes[q].message.add("accept " + myIndex);
+			if (status[q] == StatusType.BASIC)
+			{
+				status[q] = StatusType.REJECT;
+			}
+			if (q != testNode)
+			{
+				adjNodes[q].message.add("reject " + myIndex);
+			}
+			else
+			{
+				findMin();
+			}
 		}
 	}
 	
@@ -306,13 +316,14 @@ public class MstNode extends Thread
 		int w = Integer.parseInt(splitMsgArr[2]);
 		if (q != parent)
 		{
-			if (w > bestWeight)
+			rec = rec - 1;
+			
+			if (w < bestWeight)
 			{
 				bestWeight = w;
 				bestNode = q;
 			}
 			
-			rec = rec - 1;
 			myReport();
 		}
 		else
@@ -353,8 +364,8 @@ public class MstNode extends Thread
 		}
 		else
 		{
-			setBranch(bestNode);
 			adjNodes[bestNode].message.add("connect " + myIndex + " " + level);
+			setBranch(bestNode);
 		}
 	}
 	

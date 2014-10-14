@@ -26,7 +26,7 @@ public class MstRunner
 		// Start every Node
 		for (int i = 1; i <= MstGlobals.noOfNodes; i++)
 		{
-			MstGlobals.n[i].initialize();
+			MstGlobals.n[i].wakeUp();
 			MstGlobals.n[i].start();
 		}
 		
