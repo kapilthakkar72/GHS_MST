@@ -18,6 +18,28 @@ public class MstRunner
 		// Making constructor private, don't want anyone to make the object
 	}
 	
+	public static void findMst(String dataPathInput, String dataPathOutput) throws IOException,
+			InterruptedException
+	{
+		readFromFile(dataPathInput);
+		
+		// Start every Node
+		for (int i = 1; i <= MstGlobals.noOfNodes; i++)
+		{
+			MstGlobals.n[i].initialize();
+			MstGlobals.n[i].start();
+		}
+		
+		for (int i = 1; i <= MstGlobals.noOfNodes; i++)
+		{
+			MstGlobals.n[i].join();
+		}
+		
+		System.out.println("All nodes finished");
+		
+		writeToFile(dataPathOutput);
+	}
+	
 	private static void readFromFile(String dataPathInput) throws IOException
 	{
 		FileInputStream fstream = null;
@@ -35,6 +57,7 @@ public class MstRunner
 			{
 				// It is the first Line - Number of Nodes
 				MstGlobals.noOfNodes = Integer.parseInt(strLine);
+				MstGlobals.branchCount = (MstGlobals.noOfNodes - 1) * 2;
 			}
 			
 			MstGlobals.n = new MstNode[MstGlobals.noOfNodes + 1];
@@ -114,27 +137,5 @@ public class MstRunner
 				System.out.println("Error closing output stream, continuing");
 			}
 		}
-	}
-	
-	public static void findMst(String dataPathInput, String dataPathOutput) throws IOException,
-			InterruptedException
-	{
-		readFromFile(dataPathInput);
-		
-		// Start every Node
-		for (int i = 1; i <= MstGlobals.noOfNodes; i++)
-		{
-			MstGlobals.n[i].initialize();
-			MstGlobals.n[i].start();
-		}
-		
-		for (int i = 1; i <= MstGlobals.noOfNodes; i++)
-		{
-			MstGlobals.n[i].join();
-		}
-		
-		System.out.println("All nodes finished");
-		
-		writeToFile(dataPathOutput);
 	}
 }

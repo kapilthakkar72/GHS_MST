@@ -58,8 +58,6 @@ public class MstNode extends Thread
 	public void setAdjNodes(MstNode adjNodes[])
 	{
 		this.adjNodes = adjNodes;
-		MstGlobals.noOfNodes = adjNodes.length - 1;
-		MstGlobals.branchCount = (MstGlobals.noOfNodes - 1) * 2;
 	}
 	
 	public void run()
