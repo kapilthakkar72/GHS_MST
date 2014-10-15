@@ -7,23 +7,23 @@ import org.apache.commons.lang3.StringUtils;
 
 public enum StateType
 {
-	SLEEP("sleep"), FIND("find"), FOUND("found");
-	
+	SLEEP("sleep"), FIND("find"), FOUND("found"), HALT("halt");
+
 	private String	stateStr;
-	
+
 	StateType(String stateStr)
 	{
 		this.stateStr = stateStr;
 	}
-	
+
 	public String getStateStr()
 	{
 		return stateStr;
 	}
-	
+
 	// Map to hold all the StateType(s)
 	private static Map<String, StateType>	stateMap;
-	
+
 	public static synchronized StateType getStateType(String stateStr)
 	{
 		stateStr = StringUtils.lowerCase(stateStr);
@@ -31,14 +31,14 @@ public enum StateType
 		{
 			initializeMap();
 		}
-		
+
 		if (stateMap.containsKey(stateStr))
 		{
 			return stateMap.get(stateStr);
 		}
 		return null;
 	}
-	
+
 	private static synchronized void initializeMap()
 	{
 		stateMap = new ConcurrentHashMap<>();
