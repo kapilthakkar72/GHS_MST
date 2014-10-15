@@ -10,22 +10,22 @@ public enum MessageType
 	// Advisable to keep strings in lower case
 	CONNECT("connect"), INITIATE("initiate"), TEST("test"), REJECT("reject"), ACCEPT("accept"), REPORT(
 			"report"), CHANGEROOT("changeroot");
-
+	
 	String	msgStr;
-
+	
 	MessageType(String msgStr)
 	{
 		this.msgStr = msgStr;
 	}
-
+	
 	public String getMsgStr()
 	{
 		return msgStr;
 	}
-
+	
 	// Map to hold all the MessageType(s)
 	private static Map<String, MessageType>	msgTypeMap;
-
+	
 	public static synchronized MessageType getMsgType(String msgStr)
 	{
 		msgStr = StringUtils.lowerCase(msgStr);
@@ -33,15 +33,15 @@ public enum MessageType
 		{
 			initializeMap();
 		}
-
+		
 		if (msgTypeMap.containsKey(msgStr))
 		{
 			return msgTypeMap.get(msgStr);
 		}
-		// System.out.println("imside typmsg:" + msgStr);
+		
 		return null;
 	}
-
+	
 	private static synchronized void initializeMap()
 	{
 		msgTypeMap = new ConcurrentHashMap<>();
